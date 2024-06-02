@@ -7,18 +7,10 @@ import Output from '@/components/Output';
 import { io, Socket } from 'socket.io-client';
 import { executeCode } from "@/actions/compile";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faSave, faUsers, faSun, faMoon,faArrowDown, faMicrophone, faMicrophoneSlash, faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faSave, faUsers, faSun, faMoon, faArrowDown, faMicrophone, faMicrophoneSlash, faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
 import toast, { Toaster } from 'react-hot-toast';
 
 let socket: Socket;
-
-const iceServers = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
-  { urls: "stun:stun3.l.google.com:19302" },
-  { urls: "stun:stun4.l.google.com:19302" }
-];
 
 const initialCodeState: Record<string, string> = {
   "javascript": "console.log('Hello, JavaScript!');",
@@ -74,9 +66,15 @@ export default function Home() {
   const [lightMode, setLightMode] = useState<boolean>(false);
 
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedRoomId = localStorage.getItem('roomId');
+      setRoomId(storedRoomId);
+    }
+  }, []);
 
   useEffect(() => {
-    socket = io('http://localhost:5000');
+    socket = io('https://fusion-ide-backend.onrender.com');
 
     socket.on('connect', () => {
       toast.success('User connected');
@@ -219,7 +217,7 @@ export default function Home() {
       outputDiv.scrollIntoView({ behavior: 'smooth' });
     }
   };
-  
+
   // const saveCode = async () => {
   //   const sourceCode = editorRef.current?.getValue();
   //   if (!sourceCode || !username) return;
@@ -258,18 +256,18 @@ export default function Home() {
         <Toaster />
         <div className="md:w-2/3 border-b md:border-b-0 md:border-r border-gray-900">
           <div className={`flex flex-col md:flex-row justify-between items-center px-4 py-2 border-b ${lightMode ? 'border-gray-50 bg-gray-100' : 'border-gray-700 bg-gray-900'}`}>
-          <div className="flex flex-row items-center space-x-2">
-        <LanguageSelector
-          language={language}
-          onSelect={handleLanguageSelect}
-        />
-        <button
-          className="block md:hidden px-2 py-1 border border-slate-500 text-slate-500 rounded-lg hover:bg-slate-600 hover:text-white"
-          onClick={handleScrollToOutput}
-        >
-          Output <FontAwesomeIcon icon={faArrowDown} />
-        </button>
-      </div>
+            <div className="flex flex-row items-center space-x-2">
+              <LanguageSelector
+                language={language}
+                onSelect={handleLanguageSelect}
+              />
+              <button
+                className="block md:hidden px-2 py-1 border border-slate-500 text-slate-500 rounded-lg hover:bg-slate-600 hover:text-white"
+                onClick={handleScrollToOutput}
+              >
+                Output <FontAwesomeIcon icon={faArrowDown} />
+              </button>
+            </div>
 
             <div className="flex space-x-2 items-center mt-2 md:mt-0">
               <button
@@ -426,7 +424,6 @@ export default function Home() {
           </div>
         )}
       </div>
-      <div id="remote-audio"></div>
     </>
   );
 }
