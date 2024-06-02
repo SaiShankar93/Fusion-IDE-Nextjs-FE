@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, use } from 'react';
 import Editor, { Monaco } from '@monaco-editor/react';
 import LanguageSelector from '@/components/LanguageSelector';
 import { code_snippets } from '@/constants/languages';
@@ -11,14 +11,6 @@ import { faPlay, faSave, faUsers, faSun, faMoon,faArrowDown, faMicrophone, faMic
 import toast, { Toaster } from 'react-hot-toast';
 
 let socket: Socket;
-
-const iceServers = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
-  { urls: "stun:stun3.l.google.com:19302" },
-  { urls: "stun:stun4.l.google.com:19302" }
-];
 
 const initialCodeState: Record<string, string> = {
   "javascript": "console.log('Hello, JavaScript!');",
@@ -57,17 +49,17 @@ export default function Home() {
   const [codes, setCodes] = useState<Record<string, string>>(initialCodeState);
   const [language, setLanguage] = useState<string>('javascript');
   const [value, setValue] = useState<string>(codes['javascript']);
-
-  // const [value, setValue] = useState('console.log("Hello, world!")');
   const editorRef = useRef<any>();
   const monacoRef = useRef<Monaco>();
-  const [roomId, setRoomId] = useState<string | null>(localStorage.getItem('roomId') || '');
+  // const [roomId, setRoomId] = useState<string | null>(localStorage.getItem('roomId') || '');
+  const [roomId, setRoomId] = useState<string | null>(null);
   const [output, setOutput] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
   const [showJoinRoomModal, setShowJoinRoomModal] = useState(false);
-  const [username, setUsername] = useState<string>(localStorage.getItem('userName') || '');
+  // const [username, setUsername] = useState<string>(localStorage.getItem('userName') || '');
+  const [username, setUsername] = useState<string>('');
   const [createdRoomId, setCreatedRoomId] = useState<string | null>(null);
   const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
   const [showUsersList, setShowUsersList] = useState(false);
@@ -76,7 +68,7 @@ export default function Home() {
 
 
   useEffect(() => {
-    socket = io('https://fusion-ide-backend.onrender.com/');
+    socket = io('https://fusion-ide-backend.onrender.com');
 
     socket.on('connect', () => {
       toast.success('User connected');
@@ -103,7 +95,7 @@ export default function Home() {
         editorRef.current.setValue(newCode);
       }
     });
-
+    
     socket.on('languageUpdate', (newLanguage, newCode) => {
       setLanguage(newLanguage);
       setValue(newCode);
@@ -112,10 +104,6 @@ export default function Home() {
         editorRef.current.setValue(newCode);
       }
     });
-
-    if (roomId) {
-      joinRoom(roomId)
-    }
 
     socket.on('userListUpdate', (users) => {
       setConnectedUsers(users);
@@ -126,6 +114,35 @@ export default function Home() {
     };
 
   }, []);
+
+  useEffect(() => {
+    const getData = () =>{
+      const storedRoomId = localStorage.getItem('roomId');
+      const storedUsername = localStorage.getItem('userName');
+      console.log(storedRoomId,storedUsername)
+      if (storedRoomId) {
+        console.log('in room id')
+         setRoomId(storedRoomId);
+        console.log('room id',roomId)
+      }
+      if (storedUsername) {
+        console.log('in username')
+        setUsername(storedUsername);
+        console.log('username',username)
+      }
+      console.log('rdldd',roomId,username)
+      if (roomId && username) {
+        console.log('bsdk',roomId,username)
+        joinRoom(roomId);
+      }
+    }
+    getData()
+  }, []);
+  useEffect(() => {
+    if (roomId && username && !showJoinRoomModal) {
+      joinRoom(roomId);
+    }
+  }, [roomId, username]);
 
   const onMount = (editor: any, monaco: Monaco) => {
     editorRef.current = editor;
