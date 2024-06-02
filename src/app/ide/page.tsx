@@ -201,8 +201,10 @@ export default function Home() {
     console.log("New Room ID:", newRoomId);
     setCreatedRoomId(newRoomId);
     setRoomId(newRoomId);
+    setUsername(username)
     socket.emit('joinRoom', { roomId: newRoomId, username });
     localStorage.setItem('roomId', newRoomId)
+    localStorage.setItem('userName',username)
     setShowCreateRoomModal(false);
   };
 
@@ -216,8 +218,10 @@ export default function Home() {
       return;
     }
     setRoomId(roomId);
+    setUsername(username);
     socket.emit('joinRoom', { roomId, username });
     localStorage.setItem('roomId', roomId);
+    localStorage.setItem('userName',username)
     setShowJoinRoomModal(false);
   };
 
